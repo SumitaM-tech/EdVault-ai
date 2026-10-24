@@ -1,0 +1,113 @@
+{
+  "stats": {
+    "totalStudents": 12840,
+    "credentialsIssued": 48219,
+    "verificationRequests": 89412,
+    "fraudAlerts": 37
+  },
+  "student": {
+    "id": "stu-2048",
+    "name": "Aarav Mehta",
+    "role": "Student",
+    "institution": "Nexus Institute of Technology",
+    "degree": "B.Tech Computer Science",
+    "email": "aarav.mehta@edvault.edu",
+    "wallet": "0x8f4c...b2A9",
+    "year": "Class of 2026",
+    "avatar": "AM",
+    "credentials": [
+      {
+        "id": "cred-2026-0142",
+        "title": "Bachelor of Technology",
+        "institution": "Nexus Institute of Technology",
+        "issuedAt": "2026-05-14",
+        "status": "Verified",
+        "hash": "0x84a1c3d9f8b4f2e7c6c9d3a1b3a7e4f8d2f10aa5f6c92c0d8e0a11b4c7d8e2f1",
+        "cid": "bafybeig5d3n4x7v6zqf7d6d9s6y5m4k3j2h1g0f9e8d7c6b5a4r3t2y1u0",
+        "blockchainTx": "0x91a4...7c12",
+        "qrPayload": "EDV-2026-0142|aarav.mehta@edvault.edu"
+      },
+      {
+        "id": "cred-2026-0211",
+        "title": "AI Systems Micro-Certificate",
+        "institution": "Nexus Institute of Technology",
+        "issuedAt": "2026-04-03",
+        "status": "Verified",
+        "hash": "0xb6c1f1e2a8d3f0a9c4b3e7d1f2a6c9b0e1d4f7a3c5b2e8d9f0a1c3b5d7e9f2a",
+        "cid": "bafybeihm4n2k3j4h5g6f7d8s9a0q1w2e3r4t5y6u7i8o9p0l1k2j3h4g5",
+        "blockchainTx": "0x7d2f...18aa",
+        "qrPayload": "EDV-2026-0211|aarav.mehta@edvault.edu"
+      }
+    ]
+  },
+  "logs": [
+    {
+      "id": "log-1",
+      "requester": "Vertex Talent",
+      "credentialId": "cred-2026-0142",
+      "outcome": "Verified",
+      "createdAt": "2026-06-18T08:45:00Z",
+      "method": "QR"
+    },
+    {
+      "id": "log-2",
+      "requester": "Northstar University",
+      "credentialId": "cred-2026-0211",
+      "outcome": "Verified",
+      "createdAt": "2026-06-18T07:12:00Z",
+      "method": "Credential ID"
+    },
+    {
+      "id": "log-3",
+      "requester": "Orbital Health",
+      "credentialId": "cred-2025-9002",
+      "outcome": "Flagged",
+      "createdAt": "2026-06-17T21:06:00Z",
+      "method": "Credential ID"
+    }
+  ],
+  "fraud": {
+    "riskScore": 18,
+    "suspiciousUploads": 12,
+    "duplicateRecords": 4,
+    "metadataAlerts": 9,
+    "trend": [22, 25, 18, 21, 14, 19, 16],
+    "alerts": [
+      {
+        "title": "Duplicate certificate digest",
+        "message": "Two uploads matched the same hash fingerprint across separate institutions.",
+        "severity": "high"
+      },
+      {
+        "title": "Metadata mismatch",
+        "message": "Issuer metadata differs from on-chain record for 3 pending verifications.",
+        "severity": "medium"
+      },
+      {
+        "title": "Image tampering detected",
+        "message": "Compression anomalies and text layer edits were detected in a scanned transcript.",
+        "severity": "high"
+      }
+    ]
+  },
+  "timeline": [
+    {
+      "title": "Issued on-chain",
+      "description": "Credential anchored to the Polygon-backed registry.",
+      "timestamp": "2026-05-14 10:32 UTC",
+      "tone": "success"
+    },
+    {
+      "title": "CID pinned",
+      "description": "IPFS content addressed and mirrored for durability.",
+      "timestamp": "2026-05-14 10:35 UTC",
+      "tone": "neutral"
+    },
+    {
+      "title": "First recruiter verification",
+      "description": "QR scan completed by Vertex Talent in under 2 seconds.",
+      "timestamp": "2026-06-18 08:45 UTC",
+      "tone": "success"
+    }
+  ]
+}

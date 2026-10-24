@@ -1,0 +1,299 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  STUDENT
+  FACULTY
+  ADMIN
+  RECRUITER
+}
+
+enum CredentialStatus {
+  VERIFIED
+  PENDING
+  REVOKED
+  FLAGGED
+}
+
+enum VerificationOutcome {
+  VERIFIED
+  PENDING
+  FLAGGED
+}
+
+enum FraudLevel {
+  TRUSTED
+  SUSPICIOUS
+  HIGH_RISK
+  BLOCKED
+}
+
+enum InstitutionStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+enum WalletType {
+  ETHEREUM
+  POLYGON
+  OTHER
+}
+
+model User {
+  id           String      @id @default(cuid())
+  email        String      @unique
+  passwordHash String?
+  name         String
+  role         Role        @default(STUDENT)
+  institution  String?
+  degree       String?
+  wallet       String?     @unique
+  walletType   WalletType?
+  year         String?
+  avatar       String?
+  studentId    String?     @unique
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  did         String?  @unique
+  didDocument String?  @db.Text
+  didActive   Boolean  @default(false)
+  publicKey   String?
+
+  trustScore Float      @default(0.5)
+  fraudLevel FraudLevel @default(TRUSTED)
+  riskFlags  String[]   @default([])
+
+  issuedCredentials Credential[]     @relation("IssuerCredentials")
+  credentials       Credential[]     @relation("StudentCredentials")
+  verifications     VerificationLog[]
+  walletAuthLogs    WalletAuthLog[]
+  notifications     Notification[]
+}
+
+model Institution {
+  id            String            @id @default(cuid())
+  name          String            @unique
+  code          String            @unique
+  website       String?
+  address       String?
+  email         String?
+  walletAddress String?           @unique
+  status        InstitutionStatus @default(ACTIVE)
+  verified      Boolean           @default(false)
+  allowedIssuers String[]         @default([])
+  credentialCount Int             @default(0)
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+}
+
+model Credential {
+  id          String           @id @default(cuid())
+  title       String
+  institution String
+  department  String?
+  cgpa        String?
+  gradDate    DateTime?
+  issuedAt    DateTime         @default(now())
+  status      CredentialStatus @default(VERIFIED)
+
+  hash         String
+  cid          String
+  blockchainTx String
+  blockNumber  Int?
+  onChainId    String?  @unique
+  qrPayload    String   @unique
+
+  documentUrl     String?
+  documentHash    String?
+  encryptionKey   String?  @db.Text
+  encryptionIv    String?
+  isEncrypted     Boolean  @default(false)
+
+  issuerSignature String?  @db.Text
+  signatureProof  String?  @db.Text
+
+  revokedAt         DateTime?
+  revokeTx          String?
+  revocationReason  String?
+
+  fraudLevel    FraudLevel @default(TRUSTED)
+  ocrExtracted  String?    @db.Text
+  ocrConfidence Float?
+  duplicateOf   String?
+  trustScore    Float      @default(0.5)
+  anomalyFlags  String[]   @default([])
+
+  studentId String
+  student   User   @relation("StudentCredentials", fields: [studentId], references: [id], onDelete: Cascade)
+
+  issuerId String
+  issuer   User   @relation("IssuerCredentials", fields: [issuerId], references: [id], onDelete: Cascade)
+
+  verificationLogs VerificationLog[]
+  timelineEvents   TimelineEvent[]
+  shareLinks       ShareLink[]
+  auditTrail       VerificationAudit[]
+  encryptionKeyRecord EncryptionKey?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model IPFSDocument {
+  id          String   @id @default(cuid())
+  cid         String   @unique
+  fileName    String
+  fileSize    Int
+  mimeType    String
+  hash        String   @unique
+  credentialId String?
+  createdAt   DateTime @default(now())
+}
+
+model EncryptionKey {
+  id           String     @id @default(cuid())
+  credentialId String     @unique
+  credential   Credential @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+  masterKey    String     @db.Text
+  derivedKey   String     @db.Text
+  salt         String
+  algorithm    String     @default("AES-256-GCM")
+  createdAt    DateTime   @default(now())
+}
+
+model VerificationLog {
+  id           String              @id @default(cuid())
+  requesterId  String?
+  requester    User?               @relation(fields: [requesterId], references: [id])
+  credentialId String
+  credential   Credential          @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+  outcome      VerificationOutcome
+  method       String              @default("Credential ID")
+  ipAddress    String?
+  userAgent    String?
+  createdAt    DateTime            @default(now())
+}
+
+model VerificationAudit {
+  id             String     @id @default(cuid())
+  credentialId   String
+  credential     Credential @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+  verifierId     String
+  verifierName   String
+  verifierEmail  String
+  hashMatch      Boolean
+  documentMatch  Boolean
+  signatureValid Boolean
+  trustScore     Float
+  fraudLevel     FraudLevel
+  reportUrl      String?
+  downloadedAt   DateTime?
+  createdAt      DateTime   @default(now())
+}
+
+model TimelineEvent {
+  id           String     @id @default(cuid())
+  credentialId String
+  credential   Credential @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+  title        String
+  description  String
+  timestamp    DateTime   @default(now())
+  tone         String     @default("success")
+}
+
+model StudentPassport {
+  id                  String   @id @default(cuid())
+  studentId           String   @unique
+  totalCredentials    Int
+  verifiedCredentials Int
+  skills              String[]
+  certifications      String[]
+  achievements        String   @db.Text
+  summary             String?  @db.Text
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
+model ShareLink {
+  id           String     @id @default(cuid())
+  credentialId String
+  credential   Credential @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+  token        String     @unique
+  expiresAt    DateTime
+  viewCount    Int        @default(0)
+  createdAt    DateTime   @default(now())
+}
+
+model FraudDetection {
+  id               String     @id @default(cuid())
+  credentialId     String     @unique
+  ocrResults       String     @db.Text
+  ocrConfidence    Float
+  duplicateMatches String[]   @default([])
+  anomalies        String[]   @default([])
+  trustScore       Float
+  riskFactors      String     @db.Text
+  fraudLevel       FraudLevel @default(TRUSTED)
+  confidence       Float
+  aiAnalysis       String     @db.Text
+  predictions      String     @db.Text
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+}
+
+model WalletAuthLog {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  walletAddress String
+  signature     String   @db.Text
+  message       String
+  authenticated Boolean
+  createdAt     DateTime @default(now())
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String
+  title     String
+  message   String
+  data      String?  @db.Text
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model ApprovalWorkflow {
+  id           String    @id @default(cuid())
+  credentialId String
+  submittedBy  String
+  submittedAt  DateTime  @default(now())
+  approvedBy   String?
+  approvedAt   DateTime?
+  status       String    @default("PENDING")
+  comments     String?   @db.Text
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+model InstitutionAnalytics {
+  id                  String   @id @default(cuid())
+  institutionName     String
+  month               Int
+  year                Int
+  credentialsIssued   Int
+  credentialsVerified Int
+  credentialsRevoked  Int
+  fraudDetected       Int
+  trustScore          Float
+  createdAt           DateTime @default(now())
+}
